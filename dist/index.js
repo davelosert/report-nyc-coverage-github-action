@@ -10240,7 +10240,7 @@ async function run() {
   commentBody += '\n' + commentMark + '\n';
 
   if(commentMode === 'none') {
-    const stepSummaryPath = path.resole(process.env['GITHUB_STEP_SUMMARY']);
+    const stepSummaryPath = path.resolve(process.env['GITHUB_STEP_SUMMARY']);
     console.log(`Writing step summary to ${stepSummaryPath}`);
     fs.appendFileSync(stepSummaryPath, commentBody, { encoding: 'utf-8' });
   } else {
