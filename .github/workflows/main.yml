@@ -64,4 +64,3 @@ jobs:
         with:
           coverage_file: 'artifacts/test-coverage-output/coverage-summary.json'
           base_coverage_file: ${{steps.check_files.outputs.files_exists == 'true' && 'base-artifacts/coverage-summary.json' || ''}}
-          comment_template_file: 'comment-template.svelte'

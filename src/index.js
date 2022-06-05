@@ -18,11 +18,17 @@ async function run() {
     return;
   }
 
-  const gitHubToken = core.getInput('github_token').trim();
-  if (!gitHubToken) {
-    console.error('GitHub token missing (github_token).');
-    return;
+  const commentModeRaw = core.getInput(ActionInput.comment_mode);
+  const commentMode = commentModeRaw === '' ? 'none' : commentModeRaw;
+
+  if(commentMode !== 'none') {
+    const gitHubToken = core.getInput('github_token').trim();
+    if (!gitHubToken) {
+      console.error('GitHub token missing (github_token).');
+      return;
+    }
   }
+  
 
   const coverageFile = core.getInput(ActionInput.coverage_file);
   const coverageSummaryJSONPath = path.resolve(coverageFile);
@@ -107,28 +113,31 @@ async function run() {
   }
   commentBody += '\n' + commentMark + '\n';
 
-  const commentMode = core.getInput(ActionInput.comment_mode);
-
-  const octokit = await github.getOctokit(gitHubToken);
-  const existingComment =
-    commentMode === 'replace' ? await findCommentByBody(octokit, commentMark) : null;
-
-  if (existingComment) {
-    await octokit.rest.issues.updateComment({
-      owner: github.context.repo.owner,
-      repo: github.context.repo.repo,
-      comment_id: existingComment.id,
-      body: commentBody,
-    });
+  if(commentMode === 'none') {
+    const stepSummaryPath = path.resolve(process.env['GITHUB_STEP_SUMMARY']);
+    console.log(`Writing step summary to ${stepSummaryPath}`);
+    fs.appendFileSync(stepSummaryPath, commentBody, { encoding: 'utf-8' });
   } else {
-    await octokit.rest.issues.createComment({
-      owner: github.context.repo.owner,
-      repo: github.context.repo.repo,
-      issue_number: github.context.payload.pull_request.number,
-      body: commentBody,
-    });
-  }
+    const octokit = await github.getOctokit(gitHubToken);
+    const existingComment =
+      commentMode === 'replace' ? await findCommentByBody(octokit, commentMark) : null;
 
+    if (existingComment) {
+      await octokit.rest.issues.updateComment({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        comment_id: existingComment.id,
+        body: commentBody,
+      });
+    } else {
+      await octokit.rest.issues.createComment({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        issue_number: github.context.payload.pull_request.number,
+        body: commentBody,
+      });
+    }
+  }
   Object.entries(outputs).forEach(([token, value]) => {
     core.setOutput(token, value);
   });

@@ -14,11 +14,11 @@ inputs:
     default: 'comment-template.md'
     required: false
   comment_mode:
-    description: '"replace" or "new"'
-    default: 'replace'
+    description: 'Specifies if you rather have the output as a step summary than a comment. Can be one of "none", "replace", "new".'
+    default: 'none'
     required: false
   github_token:
-    description: 'An alternative GitHub token, other than the default provided by GitHub Actions runner. Optional.'
+    description: 'An alternative GitHub token, other than the default provided by GitHub Actions runner. Optional. Only required when comment_mode is set to "new" or "replace".'
     default: ${{ github.token }}
     required: false
   sources_base_path:
