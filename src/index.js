@@ -18,7 +18,8 @@ async function run() {
     return;
   }
 
-  const commentMode = core.getInput(ActionInput.comment_mode) ?? 'none';
+  const commentModeRaw = core.getInput(ActionInput.comment_mode);
+  const commentMode = commentModeRaw === '' ? 'none' : commentModeRaw;
 
   if(commentMode !== 'none') {
     const gitHubToken = core.getInput('github_token').trim();
@@ -112,7 +113,7 @@ async function run() {
   }
   commentBody += '\n' + commentMark + '\n';
 
-  if(core.getInput(ActionInput.comment_mode !== 'none')) {
+  if(commentMode === 'none') {
     fs.appendFileSync(process.env['GITHUB_STEP_SUMMARY'], commentBody, { encoding: 'utf-8' });
   } else {
     const octokit = await github.getOctokit(gitHubToken);
