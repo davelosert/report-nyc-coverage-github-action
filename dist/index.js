@@ -10144,7 +10144,9 @@ async function run() {
     return;
   }
 
-  if(core.getInput(ActionInput.comment_mode !== 'none')) {
+  const commentMode = core.getInput(ActionInput.comment_mode) ?? 'none';
+
+  if(commentMode !== 'none') {
     const gitHubToken = core.getInput('github_token').trim();
     if (!gitHubToken) {
       console.error('GitHub token missing (github_token).');
@@ -10236,10 +10238,9 @@ async function run() {
   }
   commentBody += '\n' + commentMark + '\n';
 
-  const commentMode = core.getInput(ActionInput.comment_mode);
-
-  fs.appendFileSync(process.env['GITHUB_STEP_SUMMARY'], commentBody, { encoding: 'utf-8' });
   if(core.getInput(ActionInput.comment_mode !== 'none')) {
+    fs.appendFileSync(process.env['GITHUB_STEP_SUMMARY'], commentBody, { encoding: 'utf-8' });
+  } else {
     const octokit = await github.getOctokit(gitHubToken);
     const existingComment =
       commentMode === 'replace' ? await findCommentByBody(octokit, commentMark) : null;
