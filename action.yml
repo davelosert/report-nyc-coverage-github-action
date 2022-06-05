@@ -14,7 +14,7 @@ inputs:
     default: 'comment-template.md'
     required: false
   comment_mode:
-    description: '"replace" or "new"'
+    description: '"replace", "new" or "none"'
     default: 'replace'
     required: false
   github_token:

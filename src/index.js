@@ -18,11 +18,14 @@ async function run() {
     return;
   }
 
-  const gitHubToken = core.getInput('github_token').trim();
-  if (!gitHubToken) {
-    console.error('GitHub token missing (github_token).');
-    return;
+  if(core.getInput(ActionInput.comment_mode !== 'none')) {
+    const gitHubToken = core.getInput('github_token').trim();
+    if (!gitHubToken) {
+      console.error('GitHub token missing (github_token).');
+      return;
+    }
   }
+  
 
   const coverageFile = core.getInput(ActionInput.coverage_file);
   const coverageSummaryJSONPath = path.resolve(coverageFile);
@@ -109,26 +112,28 @@ async function run() {
 
   const commentMode = core.getInput(ActionInput.comment_mode);
 
-  const octokit = await github.getOctokit(gitHubToken);
-  const existingComment =
-    commentMode === 'replace' ? await findCommentByBody(octokit, commentMark) : null;
+  fs.appendFileSync(process.env['GITHUB_STEP_SUMMARY'], commentBody, { encoding: 'utf-8' });
+  if(core.getInput(ActionInput.comment_mode !== 'none')) {
+    const octokit = await github.getOctokit(gitHubToken);
+    const existingComment =
+      commentMode === 'replace' ? await findCommentByBody(octokit, commentMark) : null;
 
-  if (existingComment) {
-    await octokit.rest.issues.updateComment({
-      owner: github.context.repo.owner,
-      repo: github.context.repo.repo,
-      comment_id: existingComment.id,
-      body: commentBody,
-    });
-  } else {
-    await octokit.rest.issues.createComment({
-      owner: github.context.repo.owner,
-      repo: github.context.repo.repo,
-      issue_number: github.context.payload.pull_request.number,
-      body: commentBody,
-    });
+    if (existingComment) {
+      await octokit.rest.issues.updateComment({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        comment_id: existingComment.id,
+        body: commentBody,
+      });
+    } else {
+      await octokit.rest.issues.createComment({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        issue_number: github.context.payload.pull_request.number,
+        body: commentBody,
+      });
+    }
   }
-
   Object.entries(outputs).forEach(([token, value]) => {
     core.setOutput(token, value);
   });
